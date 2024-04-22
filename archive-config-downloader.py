@@ -2,6 +2,7 @@ import jwt
 import time
 import requests
 import configparser
+from os.path import expanduser
 from getpass import getpass
 
 # Disable warnings
@@ -10,13 +11,15 @@ requests.packages.urllib3.disable_warnings()
 class MaglevConf():
     def get_from_user_input(self):
         url = input("Enter the URL of the DNAC: ")
+        url = f"https://{url}" if not ("http" in url) else url
         username = input("Enter the username: ")
         token = get_token_from_auth(url, username, getpass(f'DNAC GUI password for "{username}": '))
         return url, username, token
     def __init__(self, url=None, username=None, token=None, context=None):
+        user_home_path = expanduser("~")
         self.config = configparser.ConfigParser()
         try:
-            self.config.read_file(open("/home/maglev/.maglevconf"), 'r')
+            self.config.read_file(open(f"{user_home_path}/.maglevconf"), 'r')
             self.file_exists = True
         except FileNotFoundError:
             self.file_exists = False
@@ -32,9 +35,8 @@ class MaglevConf():
             self.config['global'] = {
                 'default_context': 'maglev-1'
             }
-            with open("/home/maglev/.maglevconf", 'w') as configfile:
+            with open(f"{user_home_path}/.maglevconf", 'w+') as configfile:
                 self.config.write(configfile)
-            return
         self.context = context or self.config.get('global', 'default_context')
         self.context_config = self.config[self.context]
 
@@ -58,12 +60,13 @@ class MaglevConf():
     def get_token(self):
         token = self.get('token')
         if token:
-            decoded_token = jwt.decode(token, verify=False)
+            decoded_token = jwt.decode(token, verify=False, options={"verify_signature": False})
             if decoded_token.get('exp') < time.time():
                 token = None
         return token
 
     def set_url(self, url):
+        url = f"https://{url}" if not ("http" in url) else url
         self.set('url', url)
 
     def set_username(self, username):
@@ -72,8 +75,7 @@ class MaglevConf():
     def set_token(self, token):
         self.set('token', token)
 
-def get_token_from_auth(ip, username, password):
-    host = f"https://{ip}" if not host.contains("http") else ip
+def get_token_from_auth(host, username, password):
     url = f"{host}/dna/system/api/v1/auth/token"
     headers = {
         "Content-Type": "application/json",
@@ -104,8 +106,7 @@ headers = {
 # get the list of devices to download the config
 devices_raw_input = input("Enter the list of device IPs separated by comma: ")
 # clean the input for whitespaces and split it into a list
-# devices = [device.strip() for device in devices_raw_input.split(",")]
-device_ips = ["10.104.222.202","10.197.208.25"] # TODO: added for testing. Remove this line.
+device_ips = [device.strip() for device in devices_raw_input.split(",")]
 
 # get the device ids from the IP addresses
 device_ids = []

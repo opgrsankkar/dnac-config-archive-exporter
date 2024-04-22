@@ -1,0 +1,44 @@
+# .gitignore
+
+# Editors
+.idea/
+.vscode/
+*.sublime-*
+*.swp
+*~
+
+# Python compiled files
+__pycache__/
+*.py[cod]
+
+# Packages
+*.egg
+*.egg-info
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# User-specific configuration file
+.maglevconf
+config_archive.zip
+config_archive/
